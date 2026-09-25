@@ -2,6 +2,12 @@ import { Route, Navigate } from 'react-router-dom'
 import { AdminLayout } from '@/layouts/admin/AdminLayout'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
 import { PlaceholderAdminPage } from '@/pages/admin/PlaceholderAdminPage'
+import { SpecialtyListPage } from '@/pages/admin/specialties/SpecialtyListPage'
+import { PackageListPage } from '@/pages/admin/packages/PackageListPage'
+import { DoctorListPage } from '@/pages/admin/doctors/DoctorListPage'
+import { UserListPage } from '@/pages/admin/users/UserListPage'
+import { ArticleListPage } from '@/pages/admin/articles/ArticleListPage'
+import { BannerListPage } from '@/pages/admin/banners/BannerListPage'
 
 /**
  * Danh sách toàn bộ các tuyến đường (routes) của phân hệ Quản trị Admin
@@ -16,12 +22,12 @@ export const AdminRoutes = (
     <Route path="dashboard" element={<DashboardPage />} />
 
     {/* Nhóm 2: DANH MỤC Y TẾ (Medical Catalog) */}
-    <Route path="specialties" element={<PlaceholderAdminPage />} />
-    <Route path="packages" element={<PlaceholderAdminPage />} />
+    <Route path="specialties" element={<SpecialtyListPage />} />
+    <Route path="packages" element={<PackageListPage />} />
 
     {/* Nhóm 3: TÀI KHOẢN & NHÂN SỰ (Users & Doctors) */}
-    <Route path="doctors" element={<PlaceholderAdminPage />} />
-    <Route path="users" element={<PlaceholderAdminPage />} />
+    <Route path="doctors" element={<DoctorListPage />} />
+    <Route path="users" element={<UserListPage />} />
 
     {/* Nhóm 4: VẬN HÀNH & LỊCH HẸN (Operations) */}
     <Route path="schedules" element={<PlaceholderAdminPage />} />
@@ -34,8 +40,8 @@ export const AdminRoutes = (
     <Route path="carts" element={<PlaceholderAdminPage />} />
 
     {/* Nhóm 6: NỘI DUNG & TRUYỀN THÔNG (CMS / Marketing) */}
-    <Route path="articles" element={<PlaceholderAdminPage />} />
-    <Route path="banners" element={<PlaceholderAdminPage />} />
+    <Route path="articles" element={<ArticleListPage />} />
+    <Route path="banners" element={<BannerListPage />} />
 
     {/* Nhóm 7: HỆ THỐNG */}
     <Route path="settings" element={<PlaceholderAdminPage />} />
