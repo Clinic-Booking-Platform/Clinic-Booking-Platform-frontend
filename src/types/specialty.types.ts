@@ -56,12 +56,15 @@ export interface SpecialtyDetailResponse {
 
 export type SpecialtyStatusFilter = 'all' | 'active' | 'deleted'
 
-export interface SpecialtyFilterParams {
+export interface GetSpecialtiesParams {
   page?: number
   pageSize?: number
+  all?: boolean // Khi truyền all: true, Backend sẽ trả về 100% chuyên khoa
   search?: string
   status?: SpecialtyStatusFilter
 }
+
+export type SpecialtyFilterParams = GetSpecialtiesParams
 
 export interface CreateSpecialtyDto {
   name: string

@@ -86,7 +86,7 @@ export const ArticleFormModal: React.FC<ArticleFormModalProps> = ({
 
     Promise.all([
       fetchAllSpecialties('active'),
-      fetchAllDoctors('all'),
+      fetchAllDoctors('active'),
     ])
       .then(([specList, docList]) => {
         if (!isMounted) return

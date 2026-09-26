@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-toastify'
 import { doctorApi } from '@/services/doctor.api'
+import { specialtyService } from '@/services/specialty.api'
 import { uploadService } from '@/services/upload.api'
 import {
   updateDoctorSchema,
@@ -29,7 +30,7 @@ interface DoctorEditModalProps {
   onClose: () => void
   onSuccess: () => void
   doctor: Doctor | null
-  specialties: Specialty[]
+  specialties?: Specialty[]
 }
 
 export const DoctorEditModal: React.FC<DoctorEditModalProps> = ({
@@ -40,6 +41,35 @@ export const DoctorEditModal: React.FC<DoctorEditModalProps> = ({
   specialties,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Specialty options state (all: true & status: 'active')
+  const [fetchedSpecialties, setFetchedSpecialties] = useState<Specialty[]>([])
+  const specialtyOptions =
+    specialties && specialties.length > 0 ? specialties : fetchedSpecialties
+  const isLoadingSpecialties =
+    isOpen && (!specialties || specialties.length === 0) && fetchedSpecialties.length === 0
+
+  // Fetch all active specialties if needed when modal opens
+  useEffect(() => {
+    if (!isOpen || (specialties && specialties.length > 0)) return
+
+    let isMounted = true
+    specialtyService
+      .getSpecialties({ status: 'active', all: true })
+      .then((res) => {
+        if (isMounted) {
+          const list = res.specialties || res.data?.specialties || []
+          setFetchedSpecialties(list)
+        }
+      })
+      .catch((err) => {
+        console.error('Không thể tải chuyên khoa cho modal sửa bác sĩ:', err)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [isOpen, specialties])
 
   // Form states initialized directly from doctor prop
   const [fullName, setFullName] = useState(doctor?.user?.full_name || '')
@@ -475,8 +505,12 @@ export const DoctorEditModal: React.FC<DoctorEditModalProps> = ({
                     : 'border-input focus:border-teal-500 focus:ring-teal-500/20'
                   }`}
               >
-                <option value="">-- Chọn chuyên khoa --</option>
-                {specialties.map((spec) => (
+                <option value="">
+                  {isLoadingSpecialties && specialtyOptions.length === 0
+                    ? '-- Đang tải danh sách chuyên khoa... --'
+                    : '-- Chọn chuyên khoa --'}
+                </option>
+                {specialtyOptions.map((spec) => (
                   <option key={spec.id} value={spec.id}>
                     {spec.name}
                   </option>

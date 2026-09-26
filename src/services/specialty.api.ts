@@ -1,7 +1,7 @@
 import api from './axios-clients'
 import type {
   Specialty,
-  SpecialtyFilterParams,
+  GetSpecialtiesParams,
   SpecialtyListResponse,
   SpecialtyDetailResponse,
   CreateSpecialtyDto,
@@ -11,20 +11,45 @@ import type {
 
 export const specialtyService = {
   /**
-   * Lấy danh sách chuyên khoa phân trang, tìm kiếm và lọc trạng thái
+   * Lấy danh sách chuyên khoa phân trang hoặc toàn bộ (all: true), tìm kiếm và lọc trạng thái
    */
   async getSpecialties(
-    params?: SpecialtyFilterParams
-  ): Promise<{ specialties: Specialty[]; pagination: PaginationMeta }> {
+    params?: GetSpecialtiesParams
+  ): Promise<{
+    specialties: Specialty[]
+    pagination: PaginationMeta
+    data?: { specialties: Specialty[]; pagination: PaginationMeta }
+  }> {
     const res = await api.get<SpecialtyListResponse>('/admin/specialties', {
       params: {
-        page: params?.page ?? 1,
+        page: params?.all ? undefined : (params?.page ?? 1),
         pageSize: params?.pageSize || undefined,
+        all: params?.all ? true : undefined,
         search: params?.search || undefined,
         status: params?.status ?? 'all',
       },
     })
-    return res.data.data
+    const payload = res.data?.data as unknown as
+      | { specialties: Specialty[]; pagination: PaginationMeta }
+      | Specialty[]
+      | undefined
+
+    const specialties: Specialty[] = Array.isArray(payload)
+      ? payload
+      : payload?.specialties || []
+
+    const pagination: PaginationMeta = Array.isArray(payload)
+      ? { total: specialties.length, page: 1, pageSize: specialties.length, totalPages: 1 }
+      : payload?.pagination || { total: specialties.length, page: 1, pageSize: specialties.length, totalPages: 1 }
+
+    return {
+      specialties,
+      pagination,
+      data: {
+        specialties,
+        pagination,
+      },
+    }
   },
 
   /**
@@ -65,3 +90,6 @@ export const specialtyService = {
     await api.post(`/admin/specialties-restore/${id}`)
   },
 }
+
+export const specialtyApi = specialtyService
+

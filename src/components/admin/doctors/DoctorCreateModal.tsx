@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-toastify'
 import { doctorApi } from '@/services/doctor.api'
+import { specialtyService } from '@/services/specialty.api'
 import { createDoctorSchema, formatCurrency, extractErrorMessage } from './doctor.utils'
 import type { Specialty } from '@/types/specialty.types'
 
@@ -22,7 +23,7 @@ interface DoctorCreateModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  specialties: Specialty[]
+  specialties?: Specialty[]
 }
 
 export const DoctorCreateModal: React.FC<DoctorCreateModalProps> = ({
@@ -38,6 +39,35 @@ export const DoctorCreateModal: React.FC<DoctorCreateModalProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [specialtyId, setSpecialtyId] = useState<string>('')
   const [price, setPrice] = useState<string>('')
+
+  // Specialty options state (all: true & status: 'active')
+  const [fetchedSpecialties, setFetchedSpecialties] = useState<Specialty[]>([])
+  const specialtyOptions =
+    specialties && specialties.length > 0 ? specialties : fetchedSpecialties
+  const isLoadingSpecialties =
+    isOpen && (!specialties || specialties.length === 0) && fetchedSpecialties.length === 0
+
+  // Fetch all active specialties if needed when modal opens
+  useEffect(() => {
+    if (!isOpen || (specialties && specialties.length > 0)) return
+
+    let isMounted = true
+    specialtyService
+      .getSpecialties({ status: 'active', all: true })
+      .then((res) => {
+        if (isMounted) {
+          const list = res.specialties || res.data?.specialties || []
+          setFetchedSpecialties(list)
+        }
+      })
+      .catch((err) => {
+        console.error('Không thể tải chuyên khoa cho modal tạo bác sĩ:', err)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [isOpen, specialties])
 
   // UI state
   const [showPassword, setShowPassword] = useState(false)
@@ -408,8 +438,12 @@ export const DoctorCreateModal: React.FC<DoctorCreateModalProps> = ({
                       : 'border-input focus:border-teal-500 focus:ring-teal-500/20'
                   }`}
                 >
-                  <option value="">-- Chọn chuyên khoa --</option>
-                  {specialties.map((spec) => (
+                  <option value="">
+                    {isLoadingSpecialties && specialtyOptions.length === 0
+                      ? '-- Đang tải danh sách chuyên khoa... --'
+                      : '-- Chọn chuyên khoa --'}
+                  </option>
+                  {specialtyOptions.map((spec) => (
                     <option key={spec.id} value={spec.id}>
                       {spec.name}
                     </option>

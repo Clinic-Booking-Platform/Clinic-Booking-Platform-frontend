@@ -77,14 +77,15 @@ export const DoctorListPage: React.FC = () => {
     isLoading: false,
   })
 
-  // 4. Tải danh mục chuyên khoa active để đổ vào dropdown
+  // 4. Tải toàn bộ danh mục chuyên khoa active để đổ vào dropdown lọc & modal tạo/sửa
   useEffect(() => {
     let ignore = false
     specialtyService
-      .getSpecialties({ status: 'active', page: 1 })
+      .getSpecialties({ status: 'active', all: true })
       .then((res) => {
-        if (!ignore && res.specialties) {
-          setSpecialties(res.specialties)
+        if (!ignore) {
+          const list = res.specialties || res.data?.specialties || []
+          setSpecialties(list)
         }
       })
       .catch((err) => {

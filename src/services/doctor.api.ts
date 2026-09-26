@@ -1,7 +1,7 @@
 import api from './axios-clients'
 import type {
   Doctor,
-  DoctorFilterParams,
+  GetDoctorsParams,
   DoctorListResponse,
   DoctorDetailResponse,
   CreateDoctorDto,
@@ -11,21 +11,46 @@ import type {
 
 export const doctorApi = {
   /**
-   * Lấy danh sách bác sĩ có phân trang, tìm kiếm theo tên, lọc chuyên khoa và trạng thái
+   * Lấy danh sách bác sĩ có phân trang hoặc toàn bộ (all: true), tìm kiếm theo tên, lọc chuyên khoa và trạng thái
    */
   async getDoctors(
-    params?: DoctorFilterParams
-  ): Promise<{ doctors: Doctor[]; pagination: PaginationMeta }> {
+    params?: GetDoctorsParams
+  ): Promise<{
+    doctors: Doctor[]
+    pagination: PaginationMeta
+    data?: { doctors: Doctor[]; pagination: PaginationMeta }
+  }> {
     const res = await api.get<DoctorListResponse>('/admin/doctors', {
       params: {
-        page: params?.page ?? 1,
+        page: params?.all ? undefined : (params?.page ?? 1),
         pageSize: params?.pageSize || undefined,
+        all: params?.all ? true : undefined,
         search: params?.search || undefined,
         specialty_id: params?.specialty_id || undefined,
         status: params?.status ?? 'all',
       },
     })
-    return res.data.data
+    const payload = res.data?.data as unknown as
+      | { doctors: Doctor[]; pagination: PaginationMeta }
+      | Doctor[]
+      | undefined
+
+    const doctors: Doctor[] = Array.isArray(payload)
+      ? payload
+      : payload?.doctors || []
+
+    const pagination: PaginationMeta = Array.isArray(payload)
+      ? { total: doctors.length, page: 1, pageSize: doctors.length, totalPages: 1 }
+      : payload?.pagination || { total: doctors.length, page: 1, pageSize: doctors.length, totalPages: 1 }
+
+    return {
+      doctors,
+      pagination,
+      data: {
+        doctors,
+        pagination,
+      },
+    }
   },
 
   /**

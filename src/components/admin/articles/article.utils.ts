@@ -211,7 +211,7 @@ export function invalidateArticleCaches() {
 }
 
 /**
- * Lấy toàn bộ danh sách bác sĩ (có cache và deduplication, pageSize = 100)
+ * Lấy toàn bộ danh sách bác sĩ (có cache và deduplication, all: true)
  */
 export async function fetchAllDoctors(
   status: 'all' | 'active' | 'deleted' = 'all',
@@ -231,22 +231,8 @@ export async function fetchAllDoctors(
 
   inFlightDoctors[cacheKey] = (async () => {
     try {
-      const firstRes = await doctorApi.getDoctors({ status, page: 1, pageSize: 100 })
-      let allDoctors = firstRes.doctors || []
-      const totalPages = firstRes.pagination?.totalPages || 1
-
-      if (totalPages > 1) {
-        const pagePromises = []
-        for (let p = 2; p <= totalPages; p++) {
-          pagePromises.push(doctorApi.getDoctors({ status, page: p, pageSize: 100 }))
-        }
-        const restResults = await Promise.all(pagePromises)
-        for (const res of restResults) {
-          if (res.doctors) {
-            allDoctors = allDoctors.concat(res.doctors)
-          }
-        }
-      }
+      const res = await doctorApi.getDoctors({ status, all: true })
+      const allDoctors = res.doctors || res.data?.doctors || []
 
       doctorsCache[cacheKey] = {
         data: allDoctors,
@@ -265,7 +251,7 @@ export async function fetchAllDoctors(
 }
 
 /**
- * Lấy toàn bộ danh mục chuyên khoa (có cache và deduplication, pageSize = 100)
+ * Lấy toàn bộ danh mục chuyên khoa (có cache và deduplication, all: true)
  */
 export async function fetchAllSpecialties(
   status: 'all' | 'active' | 'deleted' = 'active',
@@ -285,22 +271,8 @@ export async function fetchAllSpecialties(
 
   inFlightSpecialties[cacheKey] = (async () => {
     try {
-      const firstRes = await specialtyService.getSpecialties({ status, page: 1, pageSize: 100 })
-      let allSpecialties = firstRes.specialties || []
-      const totalPages = firstRes.pagination?.totalPages || 1
-
-      if (totalPages > 1) {
-        const pagePromises = []
-        for (let p = 2; p <= totalPages; p++) {
-          pagePromises.push(specialtyService.getSpecialties({ status, page: p, pageSize: 100 }))
-        }
-        const restResults = await Promise.all(pagePromises)
-        for (const res of restResults) {
-          if (res.specialties) {
-            allSpecialties = allSpecialties.concat(res.specialties)
-          }
-        }
-      }
+      const res = await specialtyService.getSpecialties({ status, all: true })
+      const allSpecialties = res.specialties || res.data?.specialties || []
 
       specialtiesCache[cacheKey] = {
         data: allSpecialties,

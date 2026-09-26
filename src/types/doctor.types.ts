@@ -55,13 +55,16 @@ export interface DoctorDetailResponse {
 
 export type DoctorStatusFilter = 'all' | 'active' | 'deleted'
 
-export interface DoctorFilterParams {
+export interface GetDoctorsParams {
   page?: number
   pageSize?: number
-  search?: string
+  all?: boolean // Khi truyền all: true, Backend sẽ trả về 100% bác sĩ
   specialty_id?: number
-  status?: DoctorStatusFilter
+  search?: string
+  status?: 'all' | 'active' | 'deleted'
 }
+
+export type DoctorFilterParams = GetDoctorsParams
 
 export interface CreateDoctorDto {
   fullname: string
