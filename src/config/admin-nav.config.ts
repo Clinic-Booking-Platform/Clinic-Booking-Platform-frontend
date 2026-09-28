@@ -7,12 +7,10 @@ import {
   CalendarClock,
   CalendarDays,
   FileText,
-  Pill,
   ReceiptText,
   ShoppingCart,
   Newspaper,
   Image as ImageIcon,
-  Settings,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -68,7 +66,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         title: 'Quản lý Bác sĩ',
         path: '/admin/doctors',
         icon: UserCheck,
-        badge: { text: '24 Bác sĩ', variant: 'secondary' },
+        // badge: { text: '24 Bác sĩ', variant: 'secondary' },
         description: 'Hồ sơ bác sĩ, phân chuyên khoa, xét duyệt tài khoản',
       },
       {
@@ -92,7 +90,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         title: 'Quản lý Lịch hẹn khám',
         path: '/admin/appointments',
         icon: CalendarDays,
-        badge: { text: '12 Mới', variant: 'destructive' },
+        // badge: { text: '12 Mới', variant: 'destructive' },
         description: 'Tiếp nhận, xác nhận, điều phối hoặc hủy lịch khám bệnh',
       },
       {
@@ -102,13 +100,13 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         badge: { text: 'Read-only', variant: 'outline' },
         description: 'Lịch sử khám bệnh và bệnh án điện tử đã ký số',
       },
-      {
-        title: 'Đơn thuốc',
-        path: '/admin/prescriptions',
-        icon: Pill,
-        badge: { text: 'Read-only', variant: 'outline' },
-        description: 'Tra cứu danh mục đơn thuốc đính kèm theo bệnh án',
-      },
+      // {
+      //   title: 'Đơn thuốc',
+      //   path: '/admin/prescriptions',
+      //   icon: Pill,
+      //   badge: { text: 'Read-only', variant: 'outline' },
+      //   description: 'Tra cứu danh mục đơn thuốc đính kèm theo bệnh án',
+      // },
     ],
   },
   {
@@ -146,17 +144,17 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
-  {
-    groupTitle: 'HỆ THỐNG',
-    items: [
-      {
-        title: 'Cài đặt hệ thống',
-        path: '/admin/settings',
-        icon: Settings,
-        description: 'Thông tin phòng khám, phân quyền quản trị, bảo mật',
-      },
-    ],
-  },
+  // {
+  //   groupTitle: 'HỆ THỐNG',
+  //   items: [
+  //     {
+  //       title: 'Cài đặt hệ thống',
+  //       path: '/admin/settings',
+  //       icon: Settings,
+  //       description: 'Thông tin phòng khám, phân quyền quản trị, bảo mật',
+  //     },
+  //   ],
+  // },
 ]
 
 // Helper tìm kiếm thông tin breadcrumb từ pathname

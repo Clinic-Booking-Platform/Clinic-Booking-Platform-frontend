@@ -40,7 +40,8 @@ export const LoginPage: React.FC = () => {
       } else {
         toast.error("Không nhận được dữ liệu xác thực từ máy chủ!");
       }
-    } catch (error: unknown) {
+    }
+    catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string | string[] } }; message?: string };
       const errorMsg =
         err?.response?.data?.message || err?.message || "Đã xảy ra lỗi, vui lòng thử lại!";

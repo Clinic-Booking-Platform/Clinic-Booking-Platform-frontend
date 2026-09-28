@@ -11,6 +11,8 @@ import { BannerListPage } from '@/pages/admin/banners/BannerListPage'
 import { ScheduleListPage } from '@/pages/admin/schedules/ScheduleListPage'
 import { AppointmentListPage } from '@/pages/admin/appointments/AppointmentListPage'
 import { MedicalRecordListPage } from '@/pages/admin/medical-record'
+import { OrderListPage } from '@/pages/admin/order'
+import { CartListPage } from '@/pages/admin/cart'
 
 /**
  * Danh sách toàn bộ các tuyến đường (routes) của phân hệ Quản trị Admin
@@ -39,8 +41,8 @@ export const AdminRoutes = (
     <Route path="prescriptions" element={<MedicalRecordListPage />} />
 
     {/* Nhóm 5: ĐƠN HÀNG & GIAO DỊCH (Finance & Orders) */}
-    <Route path="orders" element={<PlaceholderAdminPage />} />
-    <Route path="carts" element={<PlaceholderAdminPage />} />
+    <Route path="orders" element={<OrderListPage />} />
+    <Route path="carts" element={<CartListPage />} />
 
     {/* Nhóm 6: NỘI DUNG & TRUYỀN THÔNG (CMS / Marketing) */}
     <Route path="articles" element={<ArticleListPage />} />
