@@ -12,18 +12,6 @@ export type User = {
   role: 'ADMIN' | 'USER' | 'DOCTOR'
 }
 
-export const defaultAdminUser: User = {
-  id: 1,
-  full_name: 'BS. Lê Minh Trí',
-  name: 'BS. Lê Minh Trí',
-  email: 'admin.clinic@medicare.vn',
-  phone_number: '0901 234 567',
-  avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
-  avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
-  roleId: 1,
-  role: 'ADMIN',
-}
-
 interface AuthState {
   token: string | null
   user: User | null
@@ -42,10 +30,10 @@ function getInitialUser(): User | null {
     try {
       return JSON.parse(StorageUser)
     } catch {
-      return defaultAdminUser
+      return null
     }
   }
-  return defaultAdminUser
+  return null
 }
 
 export const useAuthStore = create<AuthState>((set) => {
@@ -55,7 +43,7 @@ export const useAuthStore = create<AuthState>((set) => {
     token: StorageToken || null,
     user: initialUser,
     adminUser: initialUser,
-    isAuthenticated: Boolean(StorageToken || initialUser),
+    isAuthenticated: Boolean(StorageToken && initialUser),
 
     setLogin: (user: User, token: string) => {
       localStorage.setItem('user', JSON.stringify(user))

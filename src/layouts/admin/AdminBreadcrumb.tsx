@@ -1,36 +1,43 @@
+// ================= FILE: src/layouts/admin/AdminBreadcrumb.tsx =================
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
-import { getBreadcrumbFromPath } from '@/config/admin-nav.config'
+import { getNavBreadcrumb } from '@/config/navigation.config'
+import { useAuth } from '@/hooks/useAuth'
 
 export const AdminBreadcrumb: React.FC = () => {
   const location = useLocation()
-  const breadcrumb = getBreadcrumbFromPath(location.pathname)
+  const { isDoctor } = useAuth()
+  const breadcrumb = getNavBreadcrumb(location.pathname)
+
+  const isDashboard =
+    location.pathname === '/admin/dashboard' || location.pathname === '/doctor/dashboard'
 
   if (!breadcrumb) {
     return (
       <div className="flex items-center text-xs text-muted-foreground gap-1.5 font-medium">
-        <Link to="/admin/dashboard" className="hover:text-foreground transition-colors flex items-center gap-1">
+        <Link
+          to={isDoctor ? '/doctor/dashboard' : '/admin/dashboard'}
+          className="hover:text-foreground transition-colors flex items-center gap-1"
+        >
           <Home className="size-3.5" />
-          <span>Admin</span>
+          <span>{isDoctor ? 'Bàn làm việc Bác sĩ' : 'Admin'}</span>
         </Link>
         <ChevronRight className="size-3 text-muted-foreground/60" />
-        <span className="text-foreground font-semibold">Trang quản trị</span>
+        <span className="text-foreground font-semibold">Cổng Portal</span>
       </div>
     )
   }
 
-  const isDashboard = location.pathname === '/admin/dashboard'
-
   return (
     <nav aria-label="Breadcrumb" className="flex items-center text-xs text-muted-foreground gap-1.5 font-medium">
       <Link
-        to="/admin/dashboard"
+        to={isDoctor ? '/doctor/dashboard' : '/admin/dashboard'}
         className="hover:text-foreground transition-colors flex items-center gap-1 p-0.5 rounded hover:bg-muted/50"
         title="Về Dashboard"
       >
         <Home className="size-3.5 text-teal-600 dark:text-teal-400" />
-        <span className="hidden sm:inline">Hệ thống</span>
+        <span className="hidden sm:inline">{isDoctor ? 'Bàn làm việc' : 'Hệ thống'}</span>
       </Link>
 
       {!isDashboard && (
@@ -49,9 +56,13 @@ export const AdminBreadcrumb: React.FC = () => {
       {isDashboard && (
         <>
           <ChevronRight className="size-3 text-muted-foreground/50 shrink-0" />
-          <span className="text-foreground font-semibold">Dashboard Tổng quan</span>
+          <span className="text-foreground font-semibold">
+            {isDoctor ? 'Bàn làm việc Bác sĩ' : 'Dashboard Tổng quan'}
+          </span>
         </>
       )}
     </nav>
   )
 }
+
+export default AdminBreadcrumb

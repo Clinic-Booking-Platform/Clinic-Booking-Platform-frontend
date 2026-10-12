@@ -120,3 +120,69 @@ export interface BulkCreateScheduleResponse {
     created_count?: number
   }
 }
+
+// ── DOCTOR SCHEDULE PORTAL TYPES ──
+export type ScheduleStatusType = ScheduleStatus
+export type TimeTypeKey = TimeSlotKey
+export type DoctorScheduleItem = Schedule
+
+export interface GetDoctorSchedulesParams {
+  page?: number
+  pageSize?: number
+  limit?: number
+  fetchAllPages?: boolean
+  date?: string // YYYY-MM-DD
+  from_date?: string // YYYY-MM-DD
+  to_date?: string // YYYY-MM-DD
+  status?: ScheduleStatusFilter
+}
+
+export interface CreateDoctorSchedulePayload {
+  date: string // YYYY-MM-DD (phải >= ngày hiện tại)
+  time_type: string // T1..T8
+  max_number?: number // Mặc định 10 (1 - 100)
+}
+
+export interface BulkCreateDoctorSchedulePayload {
+  date: string // YYYY-MM-DD
+  time_types: string[] // Mảng các ca chọn, ví dụ: ["T1", "T2", "T5"]
+  max_number?: number // Mặc định 10
+}
+
+export interface UpdateDoctorSchedulePayload {
+  max_number?: number
+  status?: ScheduleStatusType
+}
+
+export interface DoctorScheduleListResponse {
+  status: 'success'
+  message?: string
+  data: {
+    schedules: Schedule[]
+    pagination: PaginationMeta
+  }
+}
+
+export interface BulkCreateDoctorScheduleResponse {
+  status: 'success'
+  message?: string
+  data: {
+    created: Array<{
+      id: number
+      time_type: string
+      date: string
+      max_number: number
+      status: ScheduleStatusType
+    }>
+    skipped: string[]
+  }
+}
+
+export interface UpdateDoctorScheduleResponse {
+  status: 'success'
+  message?: string
+  data: {
+    schedule: Schedule
+    cancelled_appointments_count: number
+  }
+}

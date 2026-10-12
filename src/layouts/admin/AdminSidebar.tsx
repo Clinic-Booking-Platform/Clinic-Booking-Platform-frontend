@@ -1,33 +1,37 @@
+// ================= FILE: src/layouts/admin/AdminSidebar.tsx =================
 import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   X,
   Stethoscope,
   ChevronRight,
+  Shield,
 } from 'lucide-react'
 import { cn } from 'cn'
-import { ADMIN_NAV_GROUPS, type NavItem } from '@/config/admin-nav.config'
+import { getVisibleNavSections } from '@/config/navigation.config'
+import type { MenuItem } from '@/types/navigation.types'
 import { useUIStore } from '@/stores'
+import { useAuth } from '@/hooks/useAuth'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-
 
 interface AdminSidebarProps {
   isMobile?: boolean
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) => {
-
   const location = useLocation()
+  const { role, isDoctor } = useAuth()
   const {
     isSidebarCollapsed,
     isMobileSidebarOpen,
     closeMobileSidebar,
   } = useUIStore()
 
-
+  // Lọc các section & items theo vai trò hiện tại (Role-Based Dynamic Menu)
+  const visibleSections = getVisibleNavSections(role)
 
   // Helper render Badge
-  const renderBadge = (badge?: NavItem['badge']) => {
+  const renderBadge = (badge?: MenuItem['badge']) => {
     if (!badge) return null
 
     let colorClasses = 'bg-muted text-muted-foreground'
@@ -65,13 +69,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
           )}
         >
           <NavLink
-            to="/admin/dashboard"
+            to={isDoctor ? '/doctor/dashboard' : '/admin/dashboard'}
             onClick={() => isMobile && closeMobileSidebar()}
             className="flex items-center gap-2.5 overflow-hidden"
           >
             {/* Clinic Medical Icon with glowing effect */}
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-md shadow-teal-500/20">
-              <Stethoscope className="size-5" />
+            <div className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-md",
+              isDoctor
+                ? "bg-gradient-to-br from-teal-500 to-teal-700 shadow-teal-500/20"
+                : "bg-gradient-to-br from-purple-600 to-purple-800 shadow-purple-600/20"
+            )}>
+              {isDoctor ? <Stethoscope className="size-5" /> : <Shield className="size-5" />}
             </div>
 
             {/* Brand Text (Hidden when collapsed on desktop) */}
@@ -81,12 +90,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
                   <span className="font-bold text-sm tracking-tight text-foreground">
                     MediCare
                   </span>
-                  <span className="text-[10px] font-semibold bg-teal-500/15 text-teal-600 dark:text-teal-400 px-1 py-0.2 rounded">
-                    ADMIN
+                  <span className={cn(
+                    "text-[10px] font-semibold px-1 py-0.2 rounded uppercase",
+                    isDoctor
+                      ? "bg-teal-500/15 text-teal-600 dark:text-teal-400"
+                      : "bg-purple-500/15 text-purple-600 dark:text-purple-400"
+                  )}>
+                    {isDoctor ? 'BÁC SĨ' : 'ADMIN'}
                   </span>
                 </div>
                 <span className="text-[10px] text-muted-foreground mt-0.5">
-                  Clinic Booking Platform
+                  {isDoctor ? 'Cổng Y tế Bác sĩ' : 'Clinic Booking Platform'}
                 </span>
               </div>
             )}
@@ -96,7 +110,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
           {isMobile && (
             <button
               onClick={closeMobileSidebar}
-              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
               aria-label="Đóng menu"
             >
               <X className="size-5" />
@@ -104,28 +118,29 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
           )}
         </div>
 
-        {/* Navigation Groups List */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-muted">
-          {ADMIN_NAV_GROUPS.map((group, groupIndex) => {
-            const showTitle = isMobile || !isSidebarCollapsed
+        {/* Navigation Groups List (Filtered by Role) */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin scrollbar-thumb-muted">
+          {visibleSections.map((section, sectionIndex) => {
+            const showTitle = (isMobile || !isSidebarCollapsed) && Boolean(section.sectionTitle)
 
             return (
-              <div key={groupIndex} className="space-y-1">
-                {/* Group Title */}
+              <div key={sectionIndex} className="space-y-1">
+                {/* Section Title */}
                 {showTitle ? (
-                  <h3 className="px-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                    {group.groupTitle}
+                  <h3 className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                    {section.sectionTitle}
                   </h3>
-                ) : (
+                ) : section.sectionTitle ? (
                   <div className="h-px bg-border/40 mx-2 my-2" />
-                )}
+                ) : null}
 
-                {/* Items in Group */}
-                <div className="space-y-0.5 pt-1">
-                  {group.items.map((item) => {
+                {/* Items in Section */}
+                <div className="space-y-0.5 pt-0.5">
+                  {section.items.map((item) => {
+                    const homePath = isDoctor ? '/doctor/dashboard' : '/admin/dashboard'
                     const isActive =
                       location.pathname === item.path ||
-                      (item.path !== '/admin/dashboard' &&
+                      (item.path !== homePath &&
                         location.pathname.startsWith(`${item.path}/`))
 
                     const Icon = item.icon
@@ -213,7 +228,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
                 </span>
-                <span className="text-muted-foreground font-medium">Cổng Khám Chữa Bệnh</span>
+                <span className="text-muted-foreground font-medium truncate">
+                  {isDoctor ? 'Trực tuyến • Bác sĩ' : 'Trực tuyến • Hệ thống'}
+                </span>
               </div>
               <span className="text-[10px] font-mono text-muted-foreground/80">v1.2.0</span>
             </div>
@@ -270,3 +287,5 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false }) 
     </aside>
   )
 }
+
+export default AdminSidebar

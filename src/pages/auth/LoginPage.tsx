@@ -36,7 +36,13 @@ export const LoginPage: React.FC = () => {
       if (accessToken && user) {
         setLogin(user, accessToken);
         toast.success("Đăng nhập thành công");
-        navigate('/admin/dashboard');
+        if (user.role === 'DOCTOR') {
+          navigate('/doctor/dashboard');
+        } else if (user.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
         toast.error("Không nhận được dữ liệu xác thực từ máy chủ!");
       }

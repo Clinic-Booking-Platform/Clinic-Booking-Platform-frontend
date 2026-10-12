@@ -308,4 +308,167 @@ export const updateScheduleSchema = z.object({
 export type BulkCreateScheduleFormValues = z.infer<typeof bulkCreateScheduleSchema>
 export type UpdateScheduleFormValues = z.infer<typeof updateScheduleSchema>
 
+/**
+ * Chuẩn hóa chuỗi ngày tháng bất kỳ thành định dạng YYYY-MM-DD
+ */
+export function normalizeDateStringToYMD(dateStr?: string | null): string {
+  if (!dateStr) return ''
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    return dateStr.slice(0, 10)
+  }
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: VIETNAM_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(dateStr))
+  } catch {
+    return dateStr.slice(0, 10)
+  }
+}
+
+/**
+ * Kiểm tra xem ngày có ở trong quá khứ không (theo ngày hiện tại múi giờ VN)
+ */
+export function isDateInPast(dateStr?: string | null): boolean {
+  if (!dateStr) return false
+  const ymd = normalizeDateStringToYMD(dateStr)
+  const today = getTodayDateString()
+  return ymd < today
+}
+
+export interface WeekDayInfo {
+  dateString: string // YYYY-MM-DD
+  dayName: string // 'Thứ Hai', 'Thứ Ba', ..., 'Chủ Nhật'
+  shortDayName: string // 'T2', 'T3', ..., 'CN'
+  shortDate: string // '12/10'
+  isToday: boolean
+  isPast: boolean
+  fullDateFormatted: string // 'Thứ Hai, 12/10/2026'
+}
+
+/**
+ * Lấy danh sách 7 ngày trong tuần (Thứ 2 đến Chủ nhật) chứa ngày tham chiếu
+ */
+export function getWeekDays(referenceDate?: Date | string): WeekDayInfo[] {
+  let ref: Date
+  if (typeof referenceDate === 'string') {
+    const ymd = normalizeDateStringToYMD(referenceDate)
+    const [y, m, d] = ymd.split('-').map(Number)
+    ref = new Date(y, m - 1, d, 12, 0, 0)
+  } else if (referenceDate instanceof Date) {
+    ref = new Date(referenceDate)
+  } else {
+    ref = new Date()
+  }
+
+  // dayOfWeek: 0 (Sun), 1 (Mon), ..., 6 (Sat)
+  const dayOfWeek = ref.getDay()
+  const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+
+  const monday = new Date(ref)
+  monday.setDate(ref.getDate() - distanceToMonday)
+
+  const todayYMD = getTodayDateString()
+  const days: WeekDayInfo[] = []
+
+  const dayNames = [
+    'Thứ Hai',
+    'Thứ Ba',
+    'Thứ Tư',
+    'Thứ Năm',
+    'Thứ Sáu',
+    'Thứ Bảy',
+    'Chủ Nhật',
+  ]
+  const shortDayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+
+  for (let i = 0; i < 7; i++) {
+    const current = new Date(monday)
+    current.setDate(monday.getDate() + i)
+
+    const year = current.getFullYear()
+    const month = String(current.getMonth() + 1).padStart(2, '0')
+    const day = String(current.getDate()).padStart(2, '0')
+    const dateString = `${year}-${month}-${day}`
+
+    const isToday = dateString === todayYMD
+    const isPast = dateString < todayYMD
+
+    days.push({
+      dateString,
+      dayName: dayNames[i],
+      shortDayName: shortDayNames[i],
+      shortDate: `${day}/${month}`,
+      isToday,
+      isPast,
+      fullDateFormatted: `${dayNames[i]}, ${day}/${month}/${year}`,
+    })
+  }
+
+  return days
+}
+
+/**
+ * Chuỗi hiển thị khoảng ngày của tuần, ví dụ "12/10/2026 - 18/10/2026"
+ */
+export function getWeekRangeDisplay(referenceDate?: Date | string): string {
+  const weekDays = getWeekDays(referenceDate)
+  const start = weekDays[0]
+  const end = weekDays[6]
+  return `${formatShortDate(start.dateString)} - ${formatShortDate(end.dateString)}`
+}
+
+/**
+ * Schema đăng ký hàng loạt ca làm việc dành cho Bác sĩ
+ * Backend tự nhận diện doctor_id theo Token JWT
+ */
+export const doctorBulkCreateScheduleSchema = z.object({
+  date: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: 'Ngày làm việc không hợp lệ (định dạng chuẩn YYYY-MM-DD)',
+    })
+    .refine((val) => !isDateInPast(val), {
+      message: 'Không thể đăng ký lịch làm việc cho ngày trong quá khứ',
+    }),
+  time_types: z
+    .array(z.string())
+    .min(1, { message: 'Vui lòng chọn ít nhất một khung giờ khám' }),
+  max_number: z
+    .number()
+    .int({ message: 'Số lượng tiếp nhận phải là số nguyên' })
+    .min(1, { message: 'Số lượng bệnh nhân tối thiểu là 1' })
+    .max(100, { message: 'Số lượng bệnh nhân tối đa không vượt quá 100' })
+    .default(10),
+})
+
+/**
+ * Schema đăng ký 1 ca đơn lẻ dành cho Bác sĩ
+ */
+export const doctorSingleCreateScheduleSchema = z.object({
+  date: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: 'Ngày làm việc không hợp lệ (định dạng chuẩn YYYY-MM-DD)',
+    })
+    .refine((val) => !isDateInPast(val), {
+      message: 'Không thể đăng ký lịch làm việc cho ngày trong quá khứ',
+    }),
+  time_type: z.string().min(1, { message: 'Vui lòng chọn khung giờ khám' }),
+  max_number: z
+    .number()
+    .int({ message: 'Số lượng tiếp nhận phải là số nguyên' })
+    .min(1, { message: 'Số lượng bệnh nhân tối thiểu là 1' })
+    .max(100, { message: 'Số lượng bệnh nhân tối đa không vượt quá 100' })
+    .default(10),
+})
+
+export type DoctorBulkCreateFormValues = z.infer<typeof doctorBulkCreateScheduleSchema>
+export type DoctorSingleCreateFormValues = z.infer<typeof doctorSingleCreateScheduleSchema>
+
 export { TIME_SLOTS, TIME_SLOT_MAP }
+

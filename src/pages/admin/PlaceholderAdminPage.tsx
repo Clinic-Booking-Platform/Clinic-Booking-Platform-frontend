@@ -8,19 +8,19 @@ import {
   RefreshCw,
   FolderOpen,
 } from 'lucide-react'
-import { getBreadcrumbFromPath, ADMIN_NAV_GROUPS } from '@/config/admin-nav.config'
+import { getNavBreadcrumb, dashboardNavigation } from '@/config/navigation.config'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 export const PlaceholderAdminPage: React.FC = () => {
   const location = useLocation()
-  const breadcrumb = getBreadcrumbFromPath(location.pathname)
+  const breadcrumb = getNavBreadcrumb(location.pathname)
 
   // Tìm icon tương ứng
   let CurrentIcon = FolderOpen
   let currentItem = null
-  for (const g of ADMIN_NAV_GROUPS) {
-    for (const item of g.items) {
+  for (const section of dashboardNavigation) {
+    for (const item of section.items) {
       if (item.path === location.pathname) {
         CurrentIcon = item.icon
         currentItem = item
